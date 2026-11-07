@@ -1,0 +1,25 @@
+{
+  "name": "PCSA IMU · 实时推理实验",
+  "short_name": "PCSA IMU",
+  "description": "IMU采集与合成Conv1D端侧实时推理可行性测试",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f6fa",
+  "theme_color": "#0e3447",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
