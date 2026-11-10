@@ -1,0 +1,52 @@
+{
+  "model_family": "PCSA-PA / PHYSICS_ATTR / PA-Hard / A0",
+  "model_count": 4,
+  "source_checkpoint_protocol": "fold0 seed42 each source",
+  "onnx_inputs": {
+    "physical_z": [
+      1,
+      8,
+      120
+    ],
+    "log_power": [
+      1,
+      8,
+      61
+    ],
+    "statistics": [
+      1,
+      32
+    ]
+  },
+  "onnx_outputs": [
+    "logits",
+    "probabilities"
+  ],
+  "classes": [
+    "walk",
+    "still",
+    "stairsup",
+    "stairsdown"
+  ],
+  "preprocessing": "browser JS port; physical/FFT outside ONNX",
+  "sources": {
+    "pcsa_pa_hhar_f0_s42_core.onnx": {
+      "bytes": 524265,
+      "sha256": "4dd882316e08b15bec49daf8733a9ed7acb1c419b33e023dd3d2abf458db7379"
+    },
+    "pcsa_pa_uci_f0_s42_core.onnx": {
+      "bytes": 524263,
+      "sha256": "88ac1196c7633556fb5e182c8b7cd928790d7321f7d8ccd7c2ba7292d8e77288"
+    },
+    "pcsa_pa_motion_f0_s42_core.onnx": {
+      "bytes": 524266,
+      "sha256": "d00860232d8a9b5cf8d5b1d01d4b6ed3979cffb6e3fd12cb373ab65847b9e1b7"
+    },
+    "pcsa_pa_shoaib_f0_s42_core.onnx": {
+      "bytes": 524266,
+      "sha256": "e33071db594121a087538994710321afbbb46d71675e2e1032c4190d8143f1cf"
+    }
+  },
+  "browser_validation": "NOT YET RUN ON PHYSICAL IPHONE",
+  "remote_deployed": false
+}

@@ -1,18 +1,45 @@
-# PCSA IMU 实时推理实验App（PWA）
+# PCSA-PA iPhone Safari — 实际训练模型部署包
 
-这是**可安装至iPhone主屏幕的网页应用**，不是已签名的原生IPA。它复用经过合成波形训练的小型Conv1D网络，在手机上运行真实JavaScript网络前向计算。**不能用于评估PCSA-PA真实分类精度或Core ML原生推理速度**。
+## 已实现
 
-## iPhone安装
-1. 将整个文件夹（包含 `index.html`、`manifest.webmanifest`、`sw.js` 与 `icons/`）上传至GitHub Pages等**HTTPS静态托管服务**。不要只上传HTML。
-2. 在iPhone Safari中打开HTTPS链接，点击分享菜单→“添加到主屏幕”→启用“作为Web App打开”→添加。
-3. 从主屏幕打开“PCSA IMU”；点击“开始iPhone真实采集并推理”，在提示时授予运动权限。若主屏幕App无法获得运动事件，先在Safari标签页打开网站测试；部分iOS版本对主屏幕网页App的传感器权限/后台行为可能有限制。
-4. 等待首个6秒窗口，观察实时四类概率、网络P50/P95、截止率。停止后立即导出原始CSV及预测CSV。
+- 真实四个 PCSA-PA / PHYSICS_ATTR / A0 ONNX 模型，对应 UCI、MotionSense、HHAR、Shoaib 的 fold0 seed42，保持原文件内容。
+- 从上传的 `preprocess.py` 和 `native/data_processing.py` 移植到 `preprocess.js` 的 **20 Hz / 120 帧** 预处理：重力估计、auto 模式、必要时 winsorization、3D 旋转、8 个物理通道、周期 Hann+rFFT 61 点功率谱、32 个统计量。模型中的源训练归一化参数仍保留在 ONNX 图中。
+- 真实 DeviceMotionEvent 采集、1 秒更新的尾随 6 秒窗口、窗口有效性检查、四类概率、ONNX 延迟统计、原始 IMU/预测/真值 CSV 导出。
+- 参考样本按钮可验证模型在网页中的接口。请区分参考窗口和真正的手机实时采集。
 
-## 实验限制
-- 只能在前台、屏幕点亮且浏览器提供运动事件的条件下测试。锁屏、后台采集和精确CPU/内存/电池计量不能按原生App标准主张。
-- 使用合成数据训练的演示模型，预测活动名称仅供验证链路。
-- 采集与推理都在用户手机上，默认不上传传感器数据；导出CSV后请妥善保存。
-- PWA Service Worker缓存用于重复打开，并**不保证Safari在离线时授予传感器权限**。
+## 文件
 
-## 真正原生IPA
-需要macOS/Xcode或云端macOS构建、iOS签名和安装分发路径（TestFlight等）。该PWA不是IPA，也不能替代原生Core ML、Instruments或可靠后台采集测试。
+- `index.html`：新首页，默认真实 PCSA-PA 模型实验；需要与其它文件一起部署。
+- `preprocess.js`：浏览器端预处理。
+- `models/*.onnx`：四个未经修改的真实 ONNX 图。
+- `reference/*.json`：各源域的一个源验证窗口及冻结源概率。
+- `legacy-synthetic-demo.html`：前一版微型合成分类器，仅供历史比较；不是 PCSA-PA。
+- `deployment-manifest.json`：本次部署包的身份、模型校验与验证界限。
+
+## GitHub Pages 部署
+
+1. 在 `https://github.com/deerhandsome/PCSA-IMU` 的根目录备份原 `index.html`；本包 `legacy-synthetic-demo.html` 另提供旧演示副本。
+2. 上传本包 `index.html`、`preprocess.js`、`models/`、`reference/` 至根目录（保持相对路径）。
+3. GitHub Pages 分支设置保持 `main` / `/ (root)`（如果原网站已启用，则无需改变）。访问 `https://deerhandsome.github.io/PCSA-IMU/`。
+4. iPhone Safari 打开后选择一个源域模型并点击“加载真实 ONNX 模型”，可先运行“真实参考窗口”检查网页完整性。
+5. 之后点击“授权运动传感器并开始”，将手机固定在实验约定位置，等待至少六秒完整运动数据，分动作标注并采集，停止后导出三个 CSV。
+
+> 本次对远程 GitHub 的写入请求返回 HTTP 403，因此**没有直接发布到线上**。请上传完整目录，不能只上传 index.html。
+
+## 数值检查与研究限制
+
+部署包提供的四个 ONNX 在原材料 `qa/onnx_validation.json` 中记录了 1/7/32 batch 的 PyTorch 对照。我们独立对四个参考窗口复核 JS 预处理 vs Python；最大的物理表示误差为 `9.54e-7`、频谱误差为 `2.73e-6`、统计量误差为 `1.91e-6`。这只是输入预处理数值核对；**尚未在实际 iPhone Safari 运行完整 ONNX**，网页实时精度和延迟都必须实测。
+
+还需关注：
+
+- iPhone `accelerationIncludingGravity` 为 m/s²，`rotationRate` 在 Web API 通常使用 deg/s，页面转换为 rad/s；需检查设备型号和实际数据。
+- 训练域与 iPhone 的传感器轴顺序、符号、手持/腰部/口袋放置、滤波及采样率可能不同。这里没有隐式宣称跨设备的无校准等价。
+- 页面用实际事件时间轴做线性插值到 20Hz，不是原包均匀采样时的多相抗混叠重采样。适用于部署原型，但不能将两种采样处理宣称完全一致。
+- 窗口内的重力估计采用双向滤波：需等待完整六秒输入，因此不适用于声称逐帧零延迟。
+- 浏览器计算时间包含 WASM 网络计算时间和 JS 预处理，不等于能耗测试、Core ML 推理时间或前 6 秒的采样等待。
+- 论文 12 个迁移方向、36 个模型得到的 Macro-F1 不能由一个 iPhone 示例权重推断。任何手机端 Accuracy / Macro-F1 都需真实时间戳真值与跨受试者设计。
+- 页面从 jsDelivr 获取 ONNX Runtime Web 1.20.1；若网络无法访问，该页面不具备完全离线运行条件，可改用同版官方 WASM 文件在站点内托管。
+
+## 后续建议
+
+优先安排静止 → 步行 → 上楼 → 下楼的分段协议，各类按时间准确标注，记录手机具体型号、iOS/Safari 版本、佩戴位置、原始事件频率、温度和电量。先做源模型间的相同时间窗成对比较，再谈跨域泛化或论文数据。
