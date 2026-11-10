@@ -1,0 +1,60 @@
+{
+  "created": "2026-11-10T13:32:56.849382+08:00",
+  "model": "PCSA-PA / PHYSICS_ATTR / PA-Hard / A0",
+  "checkpoints": 36,
+  "exported_onnx": 4,
+  "example_choice": "fold0, seed42 of each source, fixed identity, no deployment-based selection",
+  "inference_parameters": 126468,
+  "input_contract": {
+    "raw_shape": [
+      "batch",
+      120,
+      6
+    ],
+    "fs_hz": 20,
+    "channels": [
+      "ax",
+      "ay",
+      "az",
+      "gx",
+      "gy",
+      "gz"
+    ],
+    "acceleration": "includes gravity",
+    "onnx_inputs": {
+      "physical_z": [
+        "batch",
+        8,
+        120
+      ],
+      "log_power": [
+        "batch",
+        8,
+        61
+      ],
+      "statistics": [
+        "batch",
+        32
+      ]
+    },
+    "preprocessing": "external preprocess.py; source stat normalization inside graph"
+  },
+  "labels": [
+    "walk",
+    "still",
+    "stairsup",
+    "stairsdown"
+  ],
+  "qa": {
+    "pytorch_checked_windows": 128,
+    "onnx_batch_sizes": [
+      1,
+      7,
+      32
+    ],
+    "probability_atol": 3e-05,
+    "max_onnx_vs_frozen_source_probability_error": 5.245208740234375e-06,
+    "class_predictions_exact": true
+  },
+  "training_changes": false
+}
